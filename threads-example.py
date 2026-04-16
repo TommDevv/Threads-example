@@ -30,13 +30,38 @@ class Persona(threading.Thread):
         time.sleep(random.uniform(0.1, 1.0)) # Simula tiempo de llegada
         self.jarra.beber(cantidad, self.nombre)
 
+#Acá acaba el código base, solo lo copiamos y pegamos del enunciado del taller
 
-# Simulación
+#Punto 3
+class Reabastecedor(threading.Thread):
+    def __init__(self, jarra, agua_minima, cantidad_recarga): #uno le pasa la cantidad de agua minima con la cual activarse
+        super().__init__()
+        self.jarra = jarra
+        self.ejecutando = True
+
+    def run(self):
+        while self.ejecutando:
+            time.sleep(2)  #espera 2 segundos
+            with self.jarra.lock: #adquirir el lock de la jarra antes de leer/modificar
+                if self.jarra.aguaDisponible < agua_minima:
+                    self.jarra.aguaDisponible += cantidad_recarga
+                    print("Reabastecedor añadió {cantidad_recarga} ml. "
+                          f"Nuevo nivel: {self.jarra.aguaDisponible} ml\n")
+
+    def detener(self):
+        self.ejecutando = False
+
+# Simulación (del profe)
 jarra = Jarra(1000)
 personas = [Persona(f"Persona-{i+1}", jarra) for i in range(5)]
+
+reabastecedor = Reabastecedor(jarra) #linea para el punto 3
+reabastecedor.start() #linea para el punto 3
+
 for p in personas:
 p.start()
 for p in personas:
 p.join()
 
-#Acá acaba el código base, solo lo copiamos y pegamos del enunciado del taller
+reabastecedor.detener()
+reabastecedor.join()
