@@ -3,8 +3,9 @@
 import threading
 import random
 import time
+
 class Jarra:
-    def init (self, capacidad):
+    def __init__(self, capacidad):
         self.aguaDisponible = capacidad
         self.lock = threading.Lock() # Sección crítica protegida
 
@@ -15,15 +16,14 @@ class Jarra:
                 self.aguaDisponible -= cantidad
                 print(f"Agua restante: {self.aguaDisponible} ml\n")
             else:
-                print(f"{nombre} quiso beber {cantidad} ml, pero no hay
-                suficiente agua.\n")
+                print(f"{nombre} quiso beber {cantidad} ml, pero no hay suficiente agua.\n")
 
 
 class Persona(threading.Thread):
-    def init (self, nombre, jarra):
-    super(). init ()
-    self.nombre = nombre
-    self.jarra = jarra
+    def __init__(self, nombre, jarra):
+        super().__init__()
+        self.nombre = nombre
+        self.jarra = jarra
 
     def run(self):
         cantidad = random.randint(100, 300)
@@ -38,14 +38,16 @@ class Reabastecedor(threading.Thread):
         super().__init__()
         self.jarra = jarra
         self.ejecutando = True
+        self.agua_minima = agua_minima
+        self.cantidad_recarga = cantidad_recarga
 
     def run(self):
         while self.ejecutando:
             time.sleep(2)  #espera 2 segundos
             with self.jarra.lock: #adquirir el lock de la jarra antes de leer/modificar
-                if self.jarra.aguaDisponible < agua_minima:
-                    self.jarra.aguaDisponible += cantidad_recarga
-                    print("Reabastecedor añadió {cantidad_recarga} ml. "
+                if self.jarra.aguaDisponible < self.agua_minima:
+                    self.jarra.aguaDisponible += self.cantidad_recarga
+                    print(f"Reabastecedor añadió {self.cantidad_recarga} ml. "
                           f"Nuevo nivel: {self.jarra.aguaDisponible} ml\n")
 
     def detener(self):
@@ -55,13 +57,15 @@ class Reabastecedor(threading.Thread):
 jarra = Jarra(1000)
 personas = [Persona(f"Persona-{i+1}", jarra) for i in range(5)]
 
-reabastecedor = Reabastecedor(jarra) #linea para el punto 3
+reabastecedor = Reabastecedor(jarra, 200, 150) #linea para el punto 3
 reabastecedor.start() #linea para el punto 3
 
 for p in personas:
-p.start()
+    p.start()    
 for p in personas:
-p.join()
+    p.join()
 
-reabastecedor.detener()
-reabastecedor.join()
+reabastecedor.detener() #linea pt 3
+reabastecedor.join() #linea pt 3
+
+print("\nSimulación finalizada")
